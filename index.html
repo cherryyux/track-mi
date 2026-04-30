@@ -16,6 +16,8 @@
     --web: #4872D0;
     --dog: #9DC458;
     --home: #888888;
+    --brush: #7C5CB8;
+    --journal: #4872D0;
     --toki: #7C5CB8;
     --code: #4872D0;
     --food: #9DC458;
@@ -167,8 +169,8 @@
   .cell.active.food   { background: var(--food); }
   .cell.active.home   { background: var(--home); }
   .cell.active.cycle  { background: var(--cycle); }
-  .cell.active.journal { background: #4872D0; }
-  .cell.active.brush  { background: #7C5CB8; }
+  .cell.active.journal { background: var(--journal); }
+  .cell.active.brush  { background: var(--brush); }
 
   /* mood row */
   .cell.mood-1 { background: var(--mood1); border-color: transparent; }
@@ -475,7 +477,7 @@
     html += '<th style="color:var(--dim);padding-left:8px;">%</th></tr></thead><tbody>';
 
     HABITS.forEach(habit => {
-      html += `<tr><td class="habit-name" style="color:${habit.key === 'mood' ? 'var(--dim)' : `var(--${habit.cls === 'brush' ? 'home' : habit.cls === 'journal' ? 'visa' : habit.cls})`}">${habit.label}</td>`;
+      html += `<tr><td class="habit-name" style="color:${habit.key === 'mood' ? 'var(--dim)' : `var(--${habit.cls})`}">${habit.label}</td>`;
       let count = 0;
       for (let d = 1; d <= days; d++) {
         const k = dateKey(currentYear, currentMonth, d);
