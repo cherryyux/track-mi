@@ -282,6 +282,30 @@
     margin-bottom: 10px;
     margin-top: 20px;
   }
+
+  .theme-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--dim);
+    padding: 3px 8px;
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    transition: all 0.15s;
+  }
+  .theme-btn:hover { border-color: var(--yoga); color: var(--yoga); }
+
+  body.light {
+    --bg: #EDE8D8;
+    --text: #1A1A1A;
+    --dim: #7A7570;
+    --border: #C5BFA8;
+  }
+  body.light::after { opacity: 0; }
+  body.light .stat-box { background: #E0DACC; border-color: #C5BFA8; }
+  body.light .cell { background: #D8D2C0; border-color: #C5BFA8; }
+  body.light .mood-picker { background: #E8E2D0; border-color: #C5BFA8; }
+  body.light .mood-option:hover { background: #D8D2C0; }
 </style>
 </head>
 <body>
@@ -295,6 +319,7 @@
     <button onclick="changeMonth(-1)">← prev</button>
     <span class="month-label" id="monthLabel"></span>
     <button onclick="changeMonth(1)">next →</button>
+    <button class="theme-btn" onclick="toggleTheme()" id="themeBtn">light</button>
   </div>
 </div>
 
@@ -554,10 +579,20 @@
     e.target.value = '';
   }
 
+  function toggleTheme() {
+    const isLight = document.body.classList.toggle('light');
+    document.getElementById('themeBtn').textContent = isLight ? 'dark' : 'light';
+    localStorage.setItem('theme', isLight ? 'light' : 'dark');
+  }
+
   // init
   const t = today();
   currentYear = t.y;
   currentMonth = t.m;
+  if (localStorage.getItem('theme') === 'light') {
+    document.body.classList.add('light');
+    document.getElementById('themeBtn').textContent = 'dark';
+  }
   loadFromSupabase();
 </script>
 </body>
