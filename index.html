@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>tracker.flow</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #030303;
+    --text: #cccccc;
+    --dim: #333333;
+    --border: #1a1a1a;
+    --yoga: #ff69b4;
+    --dj: #ff00cc;
+    --web: #9b30ff;
+    --dog: #ccff00;
+    --home: #888888;
+    --toki: #ff9900;
+    --code: #ff3300;
+    --food: #00ffee;
+    --cycle: #ff6666;
+    --mood1: #ff3333;
+    --mood2: #ff8800;
+    --mood3: #ffee00;
+    --mood4: #88ff00;
+    --mood5: #00ff88;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    padding: 28px 20px 60px;
+    min-height: 100vh;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+    pointer-events: none;
+    z-index: 999;
+  }
+
+  .header {
+    margin-bottom: 20px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .header-left { display: flex; align-items: baseline; gap: 10px; }
+  .prompt { color: var(--yoga); font-weight: 700; }
+  .title { color: var(--text); font-size: 16px; font-weight: 700; }
+
+  .cursor {
+    display: inline-block;
+    width: 7px; height: 13px;
+    background: var(--yoga);
+    margin-left: 3px;
+    vertical-align: middle;
+    animation: blink 1s step-end infinite;
+  }
+
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  .month-nav {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 11px;
+  }
+
+  .month-nav button {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--dim);
+    padding: 3px 8px;
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    transition: all 0.15s;
+  }
+
+  .month-nav button:hover { border-color: var(--yoga); color: var(--yoga); }
+  .month-label { color: var(--text); font-weight: 700; min-width: 120px; text-align: center; }
+
+  /* TRACKER TABLE */
+  .tracker-wrap {
+    overflow-x: auto;
+    margin-bottom: 20px;
+  }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 700px;
+  }
+
+  th {
+    padding: 6px 4px;
+    text-align: center;
+    font-size: 9px;
+    color: var(--dim);
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--border);
+    font-weight: 400;
+    white-space: nowrap;
+  }
+
+  th.habit-label {
+    text-align: left;
+    padding-left: 8px;
+    min-width: 120px;
+    font-size: 10px;
+  }
+
+  td {
+    padding: 2px;
+    text-align: center;
+    border-bottom: 1px solid #0a0a0a;
+  }
+
+  td.habit-name {
+    text-align: left;
+    padding: 5px 8px;
+    font-size: 10px;
+    white-space: nowrap;
+    border-right: 1px solid var(--border);
+  }
+
+  .cell {
+    width: 22px;
+    height: 22px;
+    border-radius: 3px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    background: #0d0d0d;
+    border: 1px solid #111;
+    transition: all 0.1s;
+    margin: 1px;
+  }
+
+  .cell:hover { border-color: #333; transform: scale(1.1); }
+  .cell.active { border-color: transparent; }
+  .cell.today { border-color: var(--text) !important; }
+
+  /* habit colors */
+  .cell.active.yoga   { background: var(--yoga); }
+  .cell.active.dog    { background: var(--dog); }
+  .cell.active.dj     { background: var(--dj); }
+  .cell.active.web    { background: var(--web); }
+  .cell.active.toki   { background: var(--toki); }
+  .cell.active.code   { background: var(--code); }
+  .cell.active.food   { background: var(--food); }
+  .cell.active.home   { background: var(--home); }
+  .cell.active.cycle  { background: var(--cycle); }
+  .cell.active.journal { background: #ddaaff; }
+  .cell.active.brush  { background: #aaffdd; }
+
+  /* mood row */
+  .cell.mood-1 { background: var(--mood1); border-color: transparent; }
+  .cell.mood-2 { background: var(--mood2); border-color: transparent; }
+  .cell.mood-3 { background: var(--mood3); border-color: transparent; }
+  .cell.mood-4 { background: var(--mood4); border-color: transparent; }
+  .cell.mood-5 { background: var(--mood5); border-color: transparent; }
+
+  .mood-picker {
+    display: none;
+    position: fixed;
+    background: #111;
+    border: 1px solid var(--border);
+    padding: 8px;
+    border-radius: 6px;
+    z-index: 100;
+    gap: 6px;
+    flex-direction: column;
+  }
+
+  .mood-picker.show { display: flex; }
+
+  .mood-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 3px;
+    font-size: 10px;
+    transition: background 0.1s;
+  }
+
+  .mood-option:hover { background: #1a1a1a; }
+
+  .mood-dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* legend */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+    font-size: 10px;
+  }
+
+  .legend-item { display: flex; align-items: center; gap: 5px; color: var(--dim); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 2px; }
+
+  /* mood legend */
+  .mood-legend {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    font-size: 10px;
+    color: var(--dim);
+    align-items: center;
+  }
+
+  .mood-legend-item { display: flex; align-items: center; gap: 4px; }
+  .mood-legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  /* stats */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 8px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+  }
+
+  .stat-box {
+    background: #080808;
+    border: 1px solid var(--border);
+    padding: 10px 12px;
+    border-radius: 2px;
+  }
+
+  .stat-label { font-size: 9px; color: var(--dim); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 4px; }
+  .stat-value { font-size: 18px; font-weight: 700; }
+  .stat-sub { font-size: 9px; color: var(--dim); margin-top: 2px; }
+
+  .save-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--dim);
+    padding: 6px 14px;
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    transition: all 0.15s;
+    margin-top: 16px;
+  }
+
+  .save-btn:hover { border-color: var(--yoga); color: var(--yoga); }
+
+  .section-title {
+    font-size: 10px;
+    color: var(--dim);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    margin-top: 20px;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <span class="prompt">~/life $</span>
+    <span class="title">tracker.flow</span>
+    <span class="cursor"></span>
+  </div>
+  <div class="month-nav">
+    <button onclick="changeMonth(-1)">← prev</button>
+    <span class="month-label" id="monthLabel"></span>
+    <button onclick="changeMonth(1)">next →</button>
+  </div>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:var(--dog)"></div>polly walk</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--yoga)"></div>yoga</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#aaffdd"></div>dry brushing</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#ddaaff"></div>journaling</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--food)"></div>healthy eating</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--dj)"></div>dj work</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--code)"></div>strudel</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--toki)"></div>toki pona</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--web)"></div>web / code</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--cycle)"></div>cycle / pms</div>
+</div>
+
+<div class="mood-legend">
+  <span style="color:var(--dim);margin-right:4px;">mood →</span>
+  <div class="mood-legend-item"><div class="mood-legend-dot" style="background:var(--mood1)"></div>terrible</div>
+  <div class="mood-legend-item"><div class="mood-legend-dot" style="background:var(--mood2)"></div>bad</div>
+  <div class="mood-legend-item"><div class="mood-legend-dot" style="background:var(--mood3)"></div>mixed 🌀</div>
+  <div class="mood-legend-item"><div class="mood-legend-dot" style="background:var(--mood4)"></div>good</div>
+  <div class="mood-legend-item"><div class="mood-legend-dot" style="background:var(--mood5)"></div>great</div>
+</div>
+
+<div class="tracker-wrap">
+  <table id="trackerTable"></table>
+</div>
+
+<div class="stats" id="statsGrid"></div>
+
+<button class="save-btn" onclick="saveData()">↓ save data</button>
+<label class="save-btn" style="margin-left:8px;">
+  ↑ load data
+  <input type="file" accept=".json" onchange="loadData(event)" style="display:none;">
+</label>
+
+<!-- mood picker -->
+<div class="mood-picker" id="moodPicker">
+  <div class="mood-option" onclick="setMood(1)"><div class="mood-dot" style="background:var(--mood1)"></div>terrible</div>
+  <div class="mood-option" onclick="setMood(2)"><div class="mood-dot" style="background:var(--mood2)"></div>bad</div>
+  <div class="mood-option" onclick="setMood(3)"><div class="mood-dot" style="background:var(--mood3)"></div>mixed 🌀</div>
+  <div class="mood-option" onclick="setMood(4)"><div class="mood-dot" style="background:var(--mood4)"></div>good</div>
+  <div class="mood-option" onclick="setMood(5)"><div class="mood-dot" style="background:var(--mood5)"></div>great</div>
+  <div class="mood-option" onclick="setMood(0)" style="color:#444">✕ clear</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const SUPABASE_URL = 'https://anczpdpuytvnyvfqjzup.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_hmKMc2OM8oP8FdVva7Wyzg_id8-3_P5';
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  const HABITS = [
+    { key: 'walk',    label: '🐾 polly walk',     cls: 'dog' },
+    { key: 'yoga',    label: '🧘 yoga',            cls: 'yoga' },
+    { key: 'brush',   label: '🪥 dry brushing',    cls: 'brush' },
+    { key: 'journal', label: '📓 journaling',      cls: 'journal' },
+    { key: 'healthy', label: '🍳 healthy eating',  cls: 'food' },
+    { key: 'dj',      label: '🎧 dj work',         cls: 'dj' },
+    { key: 'strudel', label: '🎛️ strudel',          cls: 'code' },
+    { key: 'toki',    label: '🌱 toki pona',        cls: 'toki' },
+    { key: 'web',     label: '💻 web / code',       cls: 'web' },
+    { key: 'cycle',   label: '🩸 cycle / pms',      cls: 'cycle' },
+    { key: 'mood',    label: '💙 mood',             cls: 'mood' },
+  ];
+
+  let currentYear, currentMonth;
+  let data = {};
+  let activeMoodCell = null;
+
+  // ── SUPABASE ──────────────────────────────────
+  async function loadFromSupabase() {
+    const { data: rows } = await sb.from('tracker').select('*');
+    if (rows) {
+      rows.forEach(row => { data[row.date] = row.data; });
+    }
+    buildTable();
+  }
+
+  async function saveToSupabase(dateKey) {
+    const dayData = data[dateKey] || {};
+    await sb.from('tracker').upsert({ date: dateKey, data: dayData }, { onConflict: 'date' });
+  }
+
+  function today() {
+    const d = new Date();
+    return { y: d.getFullYear(), m: d.getMonth(), d: d.getDate() };
+  }
+
+  function dateKey(y, m, d) {
+    return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+  }
+
+  function getDay(y, m, d) {
+    const k = dateKey(y, m, d);
+    if (!data[k]) data[k] = {};
+    return data[k];
+  }
+
+  function daysInMonth(y, m) {
+    return new Date(y, m+1, 0).getDate();
+  }
+
+  function buildTable() {
+    const t = today();
+    const days = daysInMonth(currentYear, currentMonth);
+    const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    document.getElementById('monthLabel').textContent = `${monthNames[currentMonth]} ${currentYear}`;
+
+    let html = '<thead><tr><th class="habit-label">habit</th>';
+    for (let d = 1; d <= days; d++) {
+      const isToday = d === t.d && currentMonth === t.m && currentYear === t.y;
+      html += `<th style="${isToday ? 'color:var(--text)' : ''}">${d}</th>`;
+    }
+    html += '<th style="color:var(--dim);padding-left:8px;">%</th></tr></thead><tbody>';
+
+    HABITS.forEach(habit => {
+      html += `<tr><td class="habit-name" style="color:${habit.key === 'mood' ? 'var(--dim)' : `var(--${habit.cls === 'brush' ? 'home' : habit.cls === 'journal' ? 'visa' : habit.cls})`}">${habit.label}</td>`;
+      let count = 0;
+      for (let d = 1; d <= days; d++) {
+        const k = dateKey(currentYear, currentMonth, d);
+        const dayData = data[k] || {};
+        const isToday = d === t.d && currentMonth === t.m && currentYear === t.y;
+        const isFuture = new Date(currentYear, currentMonth, d) > new Date(t.y, t.m, t.d);
+
+        if (habit.key === 'mood') {
+          const moodVal = dayData.mood || 0;
+          if (moodVal > 0) count++;
+          html += `<td><div class="cell ${moodVal > 0 ? `mood-${moodVal}` : ''} ${isToday ? 'today' : ''}" 
+            onclick="${isFuture ? '' : `openMoodPicker(event, '${k}')`}" 
+            style="${isFuture ? 'opacity:0.2;cursor:default' : ''}"
+            title="${moodVal > 0 ? ['','terrible','bad','okay','good','great'][moodVal] : ''}">
+            ${moodVal > 0 ? moodVal : ''}</div></td>`;
+        } else {
+          const active = dayData[habit.key] || false;
+          if (active) count++;
+          html += `<td><div class="cell ${active ? `active ${habit.cls}` : ''} ${isToday ? 'today' : ''}"
+            onclick="${isFuture ? '' : `toggleHabit('${k}', '${habit.key}', '${habit.cls}', this)`}"
+            style="${isFuture ? 'opacity:0.2;cursor:default' : ''}"></div></td>`;
+        }
+      }
+      const pct = Math.round(count / days * 100);
+      const color = pct >= 70 ? 'var(--mood5)' : pct >= 40 ? 'var(--mood3)' : 'var(--mood1)';
+      html += `<td style="padding-left:8px;color:${color};font-size:10px;">${pct}%</td></tr>`;
+    });
+
+    html += '</tbody>';
+    document.getElementById('trackerTable').innerHTML = html;
+    buildStats();
+  }
+
+  function toggleHabit(k, habitKey, cls, el) {
+    if (!data[k]) data[k] = {};
+    data[k][habitKey] = !data[k][habitKey];
+    if (data[k][habitKey]) {
+      el.classList.add('active', cls);
+    } else {
+      el.classList.remove('active', cls);
+    }
+    saveToSupabase(k);
+    buildStats();
+  }
+
+  let pendingMoodKey = null;
+
+  function openMoodPicker(e, k) {
+    pendingMoodKey = k;
+    const picker = document.getElementById('moodPicker');
+    picker.style.left = (e.clientX + 5) + 'px';
+    picker.style.top = (e.clientY + 5) + 'px';
+    picker.classList.add('show');
+    e.stopPropagation();
+  }
+
+  function setMood(val) {
+    if (!pendingMoodKey) return;
+    if (!data[pendingMoodKey]) data[pendingMoodKey] = {};
+    data[pendingMoodKey].mood = val;
+    saveToSupabase(pendingMoodKey);
+    document.getElementById('moodPicker').classList.remove('show');
+    buildTable();
+  }
+
+  document.addEventListener('click', () => {
+    document.getElementById('moodPicker').classList.remove('show');
+  });
+
+  function buildStats() {
+    const t = today();
+    const days = daysInMonth(currentYear, currentMonth);
+    const passedDays = currentYear === t.y && currentMonth === t.m ? t.d : days;
+
+    let html = '';
+    HABITS.filter(h => h.key !== 'mood').forEach(habit => {
+      let count = 0;
+      for (let d = 1; d <= passedDays; d++) {
+        const k = dateKey(currentYear, currentMonth, d);
+        if (data[k] && data[k][habit.key]) count++;
+      }
+      const pct = Math.round(count / passedDays * 100);
+      const color = pct >= 70 ? 'var(--mood5)' : pct >= 40 ? 'var(--mood3)' : 'var(--mood1)';
+      html += `<div class="stat-box">
+        <div class="stat-label">${habit.label}</div>
+        <div class="stat-value" style="color:${color}">${count}</div>
+        <div class="stat-sub">${pct}% of ${passedDays} days</div>
+      </div>`;
+    });
+
+    // avg mood
+    let moodSum = 0, moodCount = 0;
+    for (let d = 1; d <= passedDays; d++) {
+      const k = dateKey(currentYear, currentMonth, d);
+      if (data[k] && data[k].mood) { moodSum += data[k].mood; moodCount++; }
+    }
+    const avgMood = moodCount > 0 ? (moodSum / moodCount).toFixed(1) : '—';
+    const moodColor = avgMood >= 4 ? 'var(--mood5)' : avgMood >= 3 ? 'var(--mood3)' : 'var(--mood1)';
+    html += `<div class="stat-box">
+      <div class="stat-label">💙 avg mood</div>
+      <div class="stat-value" style="color:${moodColor}">${avgMood}</div>
+      <div class="stat-sub">tracked ${moodCount} days</div>
+    </div>`;
+
+    document.getElementById('statsGrid').innerHTML = html;
+  }
+
+  function changeMonth(dir) {
+    currentMonth += dir;
+    if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+    if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+    buildTable();
+  }
+
+  function saveData() {
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'tracker-data.json';
+    a.click();
+  }
+
+  function loadData(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        data = JSON.parse(ev.target.result);
+        buildTable();
+      } catch { alert('invalid file!'); }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  }
+
+  // init
+  const t = today();
+  currentYear = t.y;
+  currentMonth = t.m;
+  loadFromSupabase();
+</script>
+</body>
+</html>
