@@ -315,7 +315,7 @@
   <span style="color:var(--dim);margin-right:4px;">mood →</span>
   <div class="mood-legend-item"><div class="mood-legend-dot" style="background:var(--mood1)"></div>terrible</div>
   <div class="mood-legend-item"><div class="mood-legend-dot" style="background:var(--mood2)"></div>bad</div>
-  <div class="mood-legend-item"><div class="mood-legend-dot" style="background:var(--mood3)"></div>mixed 🌀</div>
+  <div class="mood-legend-item"><div class="mood-legend-dot" style="background:var(--mood3)"></div>mixed</div>
   <div class="mood-legend-item"><div class="mood-legend-dot" style="background:var(--mood4)"></div>good</div>
   <div class="mood-legend-item"><div class="mood-legend-dot" style="background:var(--mood5)"></div>great</div>
 </div>
@@ -336,7 +336,7 @@
 <div class="mood-picker" id="moodPicker">
   <div class="mood-option" onclick="setMood(1)"><div class="mood-dot" style="background:var(--mood1)"></div>terrible</div>
   <div class="mood-option" onclick="setMood(2)"><div class="mood-dot" style="background:var(--mood2)"></div>bad</div>
-  <div class="mood-option" onclick="setMood(3)"><div class="mood-dot" style="background:var(--mood3)"></div>mixed 🌀</div>
+  <div class="mood-option" onclick="setMood(3)"><div class="mood-dot" style="background:var(--mood3)"></div>mixed</div>
   <div class="mood-option" onclick="setMood(4)"><div class="mood-dot" style="background:var(--mood4)"></div>good</div>
   <div class="mood-option" onclick="setMood(5)"><div class="mood-dot" style="background:var(--mood5)"></div>great</div>
   <div class="mood-option" onclick="setMood(0)" style="color:#444">✕ clear</div>
@@ -348,18 +348,22 @@
   const SUPABASE_KEY = 'sb_publishable_hmKMc2OM8oP8FdVva7Wyzg_id8-3_P5';
   const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+  function icon(d) {
+    return `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:5px">${d}</svg>`;
+  }
+
   const HABITS = [
-    { key: 'walk',    label: '🐾 polly walk',     cls: 'dog' },
-    { key: 'yoga',    label: '🧘 yoga',            cls: 'yoga' },
-    { key: 'brush',   label: '🪥 dry brushing',    cls: 'brush' },
-    { key: 'journal', label: '📓 journaling',      cls: 'journal' },
-    { key: 'healthy', label: '🍳 healthy eating',  cls: 'food' },
-    { key: 'dj',      label: '🎧 dj work',         cls: 'dj' },
-    { key: 'strudel', label: '🎛️ strudel',          cls: 'code' },
-    { key: 'toki',    label: '🌱 toki pona',        cls: 'toki' },
-    { key: 'web',     label: '💻 web / code',       cls: 'web' },
-    { key: 'cycle',   label: '🩸 cycle / pms',      cls: 'cycle' },
-    { key: 'mood',    label: '💙 mood',             cls: 'mood' },
+    { key: 'walk',    label: icon('<circle cx="9" cy="7" r="2" fill="currentColor" stroke="none"/><circle cx="15" cy="7" r="2" fill="currentColor" stroke="none"/><circle cx="5.5" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="18.5" cy="12" r="1.5" fill="currentColor" stroke="none"/><ellipse cx="12" cy="18" rx="5.5" ry="4" fill="currentColor" stroke="none"/>') + 'polly walk', cls: 'dog' },
+    { key: 'yoga',    label: icon('<circle cx="12" cy="4" r="2"/><path d="M6 10c2-2 4-3 6-3s4 1 6 3"/><path d="M3 16c3-2 6-3 9-3s6 1 9 3"/><path d="M9.5 7.5L8 14M14.5 7.5L16 14"/>') + 'yoga', cls: 'yoga' },
+    { key: 'brush',   label: icon('<path d="M9.06 11.9l8.07-8.06a2.85 2.85 0 1 1 4.03 4.03l-8.06 8.08"/><path d="M7.07 14.94C5.79 16.2 5 18.45 5 20a7 7 0 0 0 2-.5 5 5 0 0 0 2.5-2.5c.29-.6.5-1.3.5-2 0-.8-.2-1.5-.93-1.5-.73 0-1.5.7-2 1.44z"/>') + 'dry brushing', cls: 'brush' },
+    { key: 'journal', label: icon('<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>') + 'journaling', cls: 'journal' },
+    { key: 'healthy', label: icon('<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>') + 'healthy eating', cls: 'food' },
+    { key: 'dj',      label: icon('<path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3z"/><path d="M3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>') + 'dj work', cls: 'dj' },
+    { key: 'strudel', label: icon('<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>') + 'strudel', cls: 'code' },
+    { key: 'toki',    label: icon('<path d="M12 22V12"/><path d="M12 12C12 7 8 3 3 3c0 5 4 9 9 9"/><path d="M12 12c0-5 4-9 9-9-1 5-4 9-9 9"/>') + 'toki pona', cls: 'toki' },
+    { key: 'web',     label: icon('<polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>') + 'web / code', cls: 'web' },
+    { key: 'cycle',   label: icon('<path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>') + 'cycle / pms', cls: 'cycle' },
+    { key: 'mood',    label: icon('<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>') + 'mood', cls: 'mood' },
   ];
 
   let currentYear, currentMonth;
@@ -513,7 +517,7 @@
     const avgMood = moodCount > 0 ? (moodSum / moodCount).toFixed(1) : '—';
     const moodColor = avgMood >= 4 ? 'var(--mood5)' : avgMood >= 3 ? 'var(--mood3)' : 'var(--mood1)';
     html += `<div class="stat-box">
-      <div class="stat-label">💙 avg mood</div>
+      <div class="stat-label">${icon('<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>')}avg mood</div>
       <div class="stat-value" style="color:${moodColor}">${avgMood}</div>
       <div class="stat-sub">tracked ${moodCount} days</div>
     </div>`;
